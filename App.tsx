@@ -3,9 +3,13 @@ import "./global.css";
 
 //Importar componentes
 import WalletHeader from './src/features/dashboard/components/WalletHeader';
+import VoiceActionButton from './src/features/dashboard/components/VoiceActionButton';
+import DailyCostCard from "./src/features/dashboard/components/DailyCostCard";
+import RecentMovements from "./src/features/dashboard/components/RecentMovements";
+import AnalyticsAndGoals from "./src/features/dashboard/components/AnalyticsAndGoals";
 
 import { useEffect } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, ScrollView } from 'react-native';
 import { openDatabaseSync } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
@@ -14,6 +18,8 @@ import migrations from './drizzle/migrations';
 // Conexiones del Core (Estado y Sincronización)
 import { useFinanceStore } from './src/core/state/useFinanceStore';
 import { useFinanceSync } from './src/shared/hooks/useFinanceSync';
+import tw from "./src/shared/lib/tw";
+
 
 // Inicializamos la base de datos local SQLite
 const expoDb = openDatabaseSync('andres_finanzas.db');
@@ -50,10 +56,30 @@ export default function App() {
 
   return (
     <View className="flex-1 bg-background px-4 pt-12">
-      {/* Encabezado Financiero */}
-      <WalletHeader />
 
-      {/* El resto de componentes (Micro de voz, lista, etc.) irán cayendo aquí abajo */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={tw`pb-8 bg-background`} // Espacio extra al final para que no pegue con el borde
+      >
+        {/* 1. Billetera superior */}
+        <WalletHeader />
+
+        <View style={tw``}>
+          {/* 2. Botón de registro de voz */}
+          <VoiceActionButton />
+
+          {/* 3. Costo diario */}
+          <DailyCostCard />
+
+          {/* 4. Línea de tiempo de movimientos */}
+          <RecentMovements />
+
+          {/* 5. Analíticas y metas de ahorro al fondo */}
+          <AnalyticsAndGoals />
+        </View>
+
+
+      </ScrollView>
     </View>
   );
 }
