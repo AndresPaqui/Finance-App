@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MicrophoneIcon, BoltIcon } from 'react-native-heroicons/solid';
-import tw from '../../../shared/lib/tw';
+import tw from '../../../../shared/lib/tw';
 
 export default function VoiceActionButton() {
     const isRecording = false; // Luego lo conectas a tu estado/hook
 
     return (
-        <View style={tw`w-full items-center px-6 py-6 bg-background`}>
+        <View style={tw`w-full items-center px-6 py-6`}>
 
             {/* --- SECCIÓN DEL MICRÓFONO --- */}
             <View style={tw`items-center mb-10`}>

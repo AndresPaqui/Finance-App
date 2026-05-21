@@ -3,7 +3,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { BellIcon, WalletIcon, CreditCardIcon, BanknotesIcon } from 'react-native-heroicons/outline';
-import tw from "../../../shared/lib/tw";
+import tw from "../../../../shared/lib/tw";
 import { LinearGradient } from 'expo-linear-gradient';
 
 //Calcular la dimension de la pantalla
@@ -19,14 +19,14 @@ export default function WalletHeader() {
     ];
 
     return (
-        <View style={tw` bg-background  pt-12 pb-6 px-4 border-b border-zinc-900`}>
+        <View style={tw`  pt-12 pb-6 px-4 border-b border-zinc-900`}>
             <View style={tw`flex-row justify-between items-center mb-6`}>
                 <View>
                     <Text style={tw`text-zinc-500 text-sm font-medium`}>Bienvenido de vuelta</Text>
                     <Text style={tw`text-slate-300 text-xl font-bold tracking-tight`}>Hola Jacob 👋</Text>
                 </View>
                 <TouchableOpacity style={tw`p-2 rounded-full border border-zinc-800`}>
-                    <BellIcon size={22} color="#CCFF00" />
+                    <BellIcon size={22} color="#C2C6D6" />
                 </TouchableOpacity>
             </View>
 

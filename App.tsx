@@ -2,12 +2,11 @@
 import "./global.css";
 
 //Importar componentes
-import WalletHeader from './src/features/dashboard/components/WalletHeader';
-import VoiceActionButton from './src/features/dashboard/components/VoiceActionButton';
-import DailyCostCard from "./src/features/dashboard/components/DailyCostCard";
-import RecentMovements from "./src/features/dashboard/components/RecentMovements";
-import AnalyticsAndGoals from "./src/features/dashboard/components/AnalyticsAndGoals";
+
+import HomeScreen from "./src/features/dashboard/components/home/HomeScreen";
+import MovementsScreen from "./src/features/dashboard/components/movements/MovementsScreen";
 import MainTabBar, { ActiveTab } from "./src/shared/MainTabBar";
+import tw from "./src/shared/lib/tw";
 
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, ScrollView } from 'react-native';
@@ -19,7 +18,6 @@ import migrations from './drizzle/migrations';
 // Conexiones del Core (Estado y Sincronización)
 import { useFinanceStore } from './src/core/state/useFinanceStore';
 import { useFinanceSync } from './src/shared/hooks/useFinanceSync';
-import tw from "./src/shared/lib/tw";
 
 
 // Inicializamos la base de datos local SQLite
@@ -65,7 +63,7 @@ export default function App() {
   }
 
   return (
-    <View className="flex-1 bg-background px-4 pt-12">
+    <View className="flex-1  px-4 pt-12">
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -74,36 +72,12 @@ export default function App() {
 
         {/* Pantalla de inicio */}
         {activeTab === 'Inicio' && (
-
-          <View>
-            {/* 1. Billetera superior */}
-            <WalletHeader />
-
-            <View style={tw``}>
-              {/* 2. Botón de registro de voz */}
-              <VoiceActionButton />
-
-              {/* 3. Costo diario */}
-              <DailyCostCard />
-
-              {/* 4. Línea de tiempo de movimientos */}
-              <RecentMovements />
-
-              {/* 5. Analíticas y metas de ahorro al fondo */}
-              <AnalyticsAndGoals />
-            </View>
-
-          </View>
-
+          <HomeScreen />
         )}
 
         {/* Pantalla de movimientos */}
         {activeTab === 'Movimientos' && (
-
-          <View style={tw`flex-1 justify-center items-center px-4 mt-20`}>
-            <Text style={tw`text-zinc-500 text-lg font-medium`}>Pantalla de Movimientos en construcción...</Text>
-          </View>
-
+          <MovementsScreen />
         )}
 
         {/* Pantalla de Metas*/}

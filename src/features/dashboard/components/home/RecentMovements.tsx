@@ -1,7 +1,7 @@
 // src/features/dashboard/components/RecentMovements.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import tw from '../../../shared/lib/tw';
+import tw from '../../../../shared/lib/tw';
 
 
 export default function RecentMovements() {

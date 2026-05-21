@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { ArrowTrendingDownIcon } from 'react-native-heroicons/solid';
-import tw from '../../../shared/lib/tw';
+import tw from '../../../../shared/lib/tw';
 
 export default function DailyCostCard() {
     return (
