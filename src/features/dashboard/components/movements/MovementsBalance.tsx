@@ -9,7 +9,7 @@ export default function MovementsBalance() {
     const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
     return (
-        <View style={tw`mb-6 px-5 pt-12`}>
+        <View style={tw`mb-6 `}>
             {/* Header */}
             <View style={tw`flex-row justify-between items-center mb-6`}>
                 <Text style={tw`text-white text-3xl font-bold tracking-wide`}>Movimientos</Text>{/* Titulo de la pestaña */}

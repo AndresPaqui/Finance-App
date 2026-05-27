@@ -31,7 +31,7 @@ export default function MovementsList() {
     ];
 
     return (
-        <View style={tw`pb-6 px-5`}>
+        <View style={tw`pb-6`}>
             {groupedData.map((group) => (
                 <View key={group.title}>
                     <Text style={tw`text-[#C2C6D6] text-sm font-semibold mb-3 ml-1`}>{group.title}</Text>

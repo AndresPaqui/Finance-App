@@ -25,7 +25,7 @@ export default function WalletHeader() {
                     <Text style={tw`text-zinc-500 text-sm font-medium`}>Bienvenido de vuelta</Text>
                     <Text style={tw`text-slate-300 text-xl font-bold tracking-tight`}>Hola Jacob 👋</Text>
                 </View>
-                <TouchableOpacity style={tw`p-2 rounded-full border border-zinc-800`}>
+                <TouchableOpacity style={tw`p-2 rounded-full border border-zinc-800`}>{/* Estilos al tarde un toque a la campana */}
                     <BellIcon size={22} color="#C2C6D6" />
                 </TouchableOpacity>
             </View>

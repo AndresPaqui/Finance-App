@@ -8,7 +8,7 @@ export default function MovementsFilter() {
     const filters = ['Todos', 'Efectivo', 'Débito', 'Crédito'];
 
     return (
-        <View style={tw`mb-6 px-5`}>
+        <View style={tw`mb-6 `}>
             {/* Buscador */}
             <View style={tw`flex-row items-center bg-[#1E293B]/50 border border-zinc-800 rounded-2xl px-4 py-3 mb-4`}>
                 <MagnifyingGlassIcon size={20} color="#94A3B8" />
