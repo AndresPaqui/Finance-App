@@ -19,6 +19,7 @@ import migrations from './drizzle/migrations';
 import { useFinanceStore } from './src/core/state/useFinanceStore';
 import { useFinanceSync } from './src/shared/hooks/useFinanceSync';
 import AnalyticsScreen from "./src/features/dashboard/components/analytics/AnalyticsScreen";
+import ProfileScreen from "./src/features/dashboard/components/profile/ProfileScreen";
 
 
 // Inicializamos la base de datos local SQLite
@@ -91,9 +92,7 @@ export default function App() {
         {/* Pantalla de Perfil*/}
         {activeTab === 'Perfil' && (
 
-          <View style={tw`flex-1 justify-center items-center px-4 mt-20`}>
-            <Text style={tw`text-zinc-500 text-lg font-medium`}>Pantalla de Perfil en construcción...</Text>
-          </View>
+          <ProfileScreen />
 
         )}
       </ScrollView>
