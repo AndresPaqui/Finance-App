@@ -51,11 +51,48 @@ export function useFinanceSync() {
 
             const totalHormiga = Number(dbHormiga[0]?.total) || 0;
 
-            // D. Sincronizar la memoria global de Zustand
+            // D. Ingresos, Gastos y Comisiones totales del mes
+            const sumatoriasMes = await db
+                .select({
+                    ingresos: sql<number>`sum(CASE WHEN ${transacciones.tipo} = 'INGRESO' THEN ${transacciones.monto} ELSE 0 END)`,
+                    gastos: sql<number>`sum(CASE WHEN ${transacciones.tipo} = 'GASTO' THEN ${transacciones.monto} ELSE 0 END)`,
+                    comisiones: sql<number>`sum(${transacciones.comision})`,
+                })
+                .from(transacciones)
+                .where(gte(transacciones.fechaCreacion, primerDiaMes));
+
+            // E. Obtener el Historial de Transacciones (con JOIN a Categorías)
+            // Se ordena del más reciente al más antiguo, limitamos a 50 para no ahogar la RAM
+            const dbTransaccionesBrutas = await db
+                .select({
+                    id: transacciones.id,
+                    cuentaOrigenId: transacciones.cuentaOrigenId,
+                    categoriaNombre: categorias.nombre,
+                    esNecesidad: categorias.esNecesidad,
+                    monto: transacciones.monto,
+                    comision: transacciones.comision,
+                    tipo: transacciones.tipo,
+                    descripcion: transacciones.descripcion,
+                    fechaCreacion: transacciones.fechaCreacion,
+                })
+                .from(transacciones)
+                .innerJoin(categorias, eq(transacciones.categoriaId, categorias.id))
+                .where(eq(transacciones.esPendiente, false))
+                .orderBy(sql`${transacciones.fechaCreacion} DESC`)
+                .limit(50);
+
+
+            // F. Sincronizar la memoria global de Zustand con la estructura
             syncFromDatabase({
                 cuentas: dbCuentas as AccountBalance[],
+                transacciones: dbTransaccionesBrutas as any[], // El tipado coincide con TransactionItem
                 pendientes: totalPendientes,
-                hormiga: totalHormiga,
+                analiticas: {
+                    hormiga: totalHormiga,
+                    ingresos: Number(sumatoriasMes[0]?.ingresos) || 0,
+                    gastos: Number(sumatoriasMes[0]?.gastos) || 0,
+                    comisiones: Number(sumatoriasMes[0]?.comisiones) || 0,
+                }
             });
 
         } catch (error) {
@@ -84,9 +121,22 @@ export function useFinanceSync() {
         const { monto, comision, tipo, categoriaNombre, cuentaOrigenId, descripcion, esHormiga } = payload;
         const transaccionId = Crypto.randomUUID();
         const costoTotal = monto + comision;
+        const fechaActual = new Date().toISOString(); // Capturamos la hora exacta
+
+        const nuevaTransaccionFake = { //Clon visual para inyectarlo en la UI al instante
+            id: transaccionId,
+            cuentaOrigenId: cuentaOrigenId,
+            categoriaNombre: categoriaNombre,
+            monto: monto,
+            comision: comision,
+            tipo: tipo,
+            descripcion: descripcion,
+            fechaCreacion: fechaActual,
+            esNecesidad: false, // Asumimos capricho en la UI hasta que la BD confirme lo contrario
+        };
 
         // A. PASO OPTIMISTA: Actualiza la UI al milisegundo (Zustand)
-        registrarOptimista({ cuentaOrigenId, monto, comision, tipo, esHormiga });
+        registrarOptimista({ cuentaOrigenId, monto, comision, tipo, esHormiga, nuevaTransaccionFake });
 
         // B. PASO PERSISTENTE: Escritura asíncrona y segura en SQLite
         try {

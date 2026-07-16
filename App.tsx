@@ -5,6 +5,8 @@ import "./global.css";
 
 import HomeScreen from "./src/features/dashboard/components/home/HomeScreen";
 import MovementsScreen from "./src/features/dashboard/components/movements/MovementsScreen";
+import AnalyticsScreen from "./src/features/dashboard/components/analytics/AnalyticsScreen";
+import ProfileScreen from "./src/features/dashboard/components/profile/ProfileScreen";
 import MainTabBar, { ActiveTab } from "./src/shared/MainTabBar";
 import tw from "./src/shared/lib/tw";
 
@@ -18,8 +20,8 @@ import migrations from './drizzle/migrations';
 // Conexiones del Core (Estado y Sincronización)
 import { useFinanceStore } from './src/core/state/useFinanceStore';
 import { useFinanceSync } from './src/shared/hooks/useFinanceSync';
-import AnalyticsScreen from "./src/features/dashboard/components/analytics/AnalyticsScreen";
-import ProfileScreen from "./src/features/dashboard/components/profile/ProfileScreen";
+
+import { seedDatabase } from "./src/core/database/seed";
 
 
 // Inicializamos la base de datos local SQLite
@@ -45,6 +47,17 @@ export default function App() {
   const handleRegistrarPress = () => {
     console.log('¡Botón Registrar presionado! Aquí abriremos la IA de voz.');
   };
+
+  useEffect(() => {
+    const initSeed = async () => {
+      // Solo sembramos si las tablas ya existen
+      if (dbMigrated) {
+        await seedDatabase(expoDb);
+        await loadInitialData(); // Obligamos a Zustand a leer la BD recién sembrada
+      }
+    };
+    initSeed();
+  }, [dbMigrated, loadInitialData]);
 
   useEffect(() => {
     if (error) {

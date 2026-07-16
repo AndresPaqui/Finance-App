@@ -11,32 +11,59 @@ export interface AccountBalance {
     limiteCredito?: number;
 }
 
+export interface TransactionItem {
+    id: string;
+    cuentaOrigenId: string;
+    categoriaNombre: string; // Join con Categorias
+    monto: number;
+    comision: number;
+    tipo: 'INGRESO' | 'GASTO' | 'TRANSFERENCIA';
+    descripcion: string | null;
+    fechaCreacion: string;
+    esNecesidad: boolean; // Para el termómetro
+}
+
 interface FinanceState {
-    // --- ESTADOS (State) ---
+    // --- Estados para el core ---
     cuentasList: AccountBalance[];
+    transaccionesList: TransactionItem[];
     saldoTotalNeto: number;
     pendientesCount: number;      // Para el círculo rojo de los Break Points
-    gastosHormigaMes: number;     // Acumulado de sándwiches/tabacos
     isRecordingVoz: boolean;      // Estado de la burbuja flotante
     isLoading: boolean;
+
+    // --- Estados para el analiticas ---
+
+    ingresosMes: number;
+    gastosMes: number;
+    gastosHormigaMes: number;     // Acumulado de sándwiches/tabacos
+    comisionesMes: number;
 
     // --- Biometria ---
     isAppFullyUnlocked: boolean;
     isBubbleUnlocked: boolean;
 
-    // --- ACCIONES (Actions) ---
+    // --- ACCIONES (setter simples) ---
     setLoading: (loading: boolean) => void;
     setRecordingVoz: (recording: boolean) => void;
 
-    // --- Biometria (Actions) ---
+    // --- Biometria (setter simples) ---
     setAppFullyUnlock: (unlocked: boolean) => void;
     setBubbleUnlock: (unlocked: boolean) => void;
 
-    // Sincronización inicial desde SQLite a la memoria de la app
+
+
+    // Sincronización inicial desde SQLite a la memoria de la app Acciones del core
     syncFromDatabase: (data: {
         cuentas: AccountBalance[];
+        transacciones: TransactionItem[];
         pendientes: number;
-        hormiga: number;
+        analiticas: {
+            hormiga: number,
+            ingresos: number;
+            gastos: number;
+            comisiones: number;
+        }
     }) => void;
 
     // Actualización Optimista: Cambia el saldo al instante en la UI sin esperar a la DB
@@ -46,6 +73,8 @@ interface FinanceState {
         comision: number;
         tipo: 'GASTO' | 'INGRESO';
         esHormiga: boolean;
+        nuevaTransaccionFake: TransactionItem; //Esto mostrara la transacion en la lista de forma inmediata
+
     }) => void;
 
     // Incrementar los Break Points instantáneamente desde la burbuja
@@ -56,11 +85,15 @@ interface FinanceState {
 export const useFinanceStore = create<FinanceState>((set) => ({
     // Valores iniciales por defecto
     cuentasList: [],
+    transaccionesList: [],
     saldoTotalNeto: 0,
     pendientesCount: 0,
+    ingresosMes: 0,
+    gastosMes: 0,
     gastosHormigaMes: 0,
-    isRecordingVoz: false,
+    comisionesMes: 0,
     isLoading: true,
+    isRecordingVoz: false,
 
     //Biometria
     isAppFullyUnlocked: false,
@@ -86,15 +119,19 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
         return {
             cuentasList: data.cuentas,
+            transaccionesList: data.transacciones,
             saldoTotalNeto: neto,
             pendientesCount: data.pendientes,
-            gastosHormigaMes: data.hormiga,
+            gastosHormigaMes: data.analiticas.hormiga,
+            ingresosMes: data.analiticas.ingresos,
+            gastosMes: data.analiticas.gastos,
+            comisionesMes: data.analiticas.comisiones,
             isLoading: false,
         };
     }),
 
     registrarMovimientoOptimista: (params) => set((state) => {
-        const { cuentaOrigenId, monto, comision, tipo, esHormiga } = params;
+        const { cuentaOrigenId, monto, comision, tipo, esHormiga, nuevaTransaccionFake } = params;
         const costoTotal = monto + comision;
 
         // Modificamos la cuenta afectada en memoria
@@ -124,7 +161,12 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         return {
             cuentasList: nuevasCuentas,
             saldoTotalNeto: nuevoNeto,
+            // Insertamos la transacción al inicio de la lista visual
+            transaccionesList: [nuevaTransaccionFake, ...state.transaccionesList],
             gastosHormigaMes: esHormiga ? state.gastosHormigaMes + monto : state.gastosHormigaMes,
+            gastosMes: tipo === 'GASTO' ? state.gastosMes + monto : state.gastosMes,
+            ingresosMes: tipo === 'INGRESO' ? state.ingresosMes + monto : state.ingresosMes,
+            comisionesMes: state.comisionesMes + comision,
         };
     }),
 

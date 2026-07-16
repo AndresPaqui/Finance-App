@@ -9,6 +9,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 //Calcular la dimension de la pantalla
 const CARD_WIDTH = Dimensions.get('window').width * 0.85;
 
+import { useFinanceStore } from '../../../../core/state/useFinanceStore';
+
+// Diccionario visual: Mapea el tipo de cuenta de la BD a tus estilos Tailwind
+const ACCOUNT_THEMES = {
+    EFECTIVO: { color: 'border-emerald-500/30', colorIcon: 'text-[#4EDEA3]', bg: 'bg-[#00A572]/20', gradient: ['#065F46', '#022C22'] as const, icon: '💵' },
+    BANCO: { color: 'border-blue-500/30', colorIcon: 'text-[#4D8EFF]', bg: 'bg-[#4D8EFF]/20', gradient: ['#1E3A8A', '#172554'] as const, icon: '💳' },
+    TARJETA_CREDITO: { color: 'border-orange-500/30', colorIcon: 'text-[#CA8100]', bg: 'bg-[#CA8100]/20', gradient: ['#CA8100', '#431407'] as const, icon: '💳' },
+};
+
 export default function WalletHeader() {
     const saldoTotal = 426.82;
 
