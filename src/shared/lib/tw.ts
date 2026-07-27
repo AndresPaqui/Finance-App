@@ -1,11 +1,20 @@
 import { create, TwConfig } from "twrnc";
-import resolveConfig from "tailwindcss/resolveConfig";
 
-// como usas module.exports:
-const tailwindConfig = require("../../../tailwind.config");
+// ⚠️  NO pasamos tailwind.config.js a create():
+// ese archivo contiene require('nativewind/preset') que falla silenciosamente
+// en el runtime RN, dejando a twrnc sin los colores custom.
+//
+// Solución: importar directamente la fuente de verdad de colores y extender
+// el tema base de twrnc (que ya incluye zinc, slate, white, etc.).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { walletThemes: _walletThemes, ...neoColors } = require('../../core/theme/neoThemeColors');
 
-const fullConfig = resolveConfig(tailwindConfig) as unknown as TwConfig;
+const tw = create({
+    theme: {
+        extend: {
+            colors: neoColors,
+        },
+    },
+} as TwConfig);
 
-const tw = create(fullConfig);
-
-export default tw;
+export default tw;

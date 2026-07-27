@@ -1,22 +1,34 @@
+// Importamos los colores desde la fuente única de verdad (CommonJS)
+// para que tanto tailwind.config.js como este archivo compartan exactamente
+// los mismos valores sin duplicación.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const {
+    walletThemes: _walletThemes,
+    ...rawColors
+} = require('./neoThemeColors') as {
+    walletThemes: Record<string, { gradient: [string, string]; accent: string; icon: string }>;
+    primaryBlue:   string;
+    successMint:   string;
+    warningOrange: string;
+    background:    string;
+    card:          string;
+    border:        string;
+    textPrimary:   string;
+    textSecondary: string;
+    errorRed:      string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const _wt = require('./neoThemeColors').walletThemes as Record<
+    'OCEAN' | 'FOREST' | 'SUNSET' | 'CRIMSON' | 'NEBULA' | 'STEEL',
+    { gradient: [string, string]; accent: string; icon: string }
+>;
+
 export const NeoTheme = {
-    colors: {
-        // colores Principales
-        primaryBlue: '#3B82F6',    // Botones, CTA, Entrada de Voz
-        successMint: '#10B981',    // Ingresos, Ahorros, Metas
-        warningOrange: '#F59E0B',  // Gastos Hormiga, Alertas, Burn Rate
-
-        // Neutros / Fondos (Slate Palette)
-        background: '#0F172A',     // Fondo oscuro elegante estilo Stripe
-        card: '#1E293B',           // Tarjetas y contenedores
-        border: '#334155',         // Bordes sutiles
-
-        // Tipografía
-        textPrimary: '#F8FAFC',    // Texto principal de alta visibilidad
-        textSecondary: '#94A3B8',  // Leyendas, subtítulos e insights
-
-        // Extras
-        errorRed: '#EF4444',
-    }
+    colors: rawColors,
+    walletThemes: _wt,
 } as const;
 
-export type AppColors = typeof NeoTheme.colors;
+export type AppColors      = typeof rawColors;
+export type WalletThemeKey = 'OCEAN' | 'FOREST' | 'SUNSET' | 'CRIMSON' | 'NEBULA' | 'STEEL';
+export type WalletTheme    = { gradient: [string, string]; accent: string; icon: string };

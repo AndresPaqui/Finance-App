@@ -7,7 +7,12 @@ en el mismo tiempo de ejecución permitiendo que la base de datos se configure s
 module.exports = function (api) {
     api.cache(true);
     return {
-        presets: ['babel-preset-expo'],
+        presets: [
+            'babel-preset-expo',
+            // nativewind/babel exporta { plugins: [...] } → es un preset, no un plugin.
+            // Incluirlo aquí evita el error ".plugins is not a valid Plugin property".
+            'nativewind/babel',
+        ],
         plugins: [
             [
                 'babel-plugin-inline-import',

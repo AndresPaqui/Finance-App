@@ -14,10 +14,10 @@ export default function TimeFilter() {
                     <TouchableOpacity
                         key={filter}
                         onPress={() => setActiveFilter(filter)}
-                        style={tw`px-5 py-2.5 rounded-full border border-zinc-800 mr-3 ${activeFilter === filter ? 'bg-blue-200 border-blue-300' : 'bg-transparent'
+                        style={tw`px-5 py-2.5 rounded-full border border-border mr-3 ${activeFilter === filter ? 'bg-primaryBlue border-primaryBlue' : 'bg-transparent'
                             }`}
                     >
-                        <Text style={tw`text-sm font-semibold ${activeFilter === filter ? 'text-slate-900' : 'text-zinc-400'
+                        <Text style={tw`text-sm font-semibold ${activeFilter === filter ? 'text-background' : 'text-textSecondary'
                             }`}>
                             {filter}
                         </Text>

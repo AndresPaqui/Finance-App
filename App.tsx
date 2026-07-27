@@ -78,7 +78,7 @@ export default function App() {
   }
 
   return (
-    <View className="flex-1  px-4 pt-12">
+    <View className="flex-1">
 
       <ScrollView
         showsVerticalScrollIndicator={false}

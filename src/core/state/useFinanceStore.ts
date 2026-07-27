@@ -23,10 +23,18 @@ export interface TransactionItem {
     esNecesidad: boolean; // Para el termómetro
 }
 
+export interface MetaAhorroItem {
+    id: string;
+    nombreMeta: string;
+    montoObjetivo: number;
+    montoActual: number;
+}
+
 interface FinanceState {
     // --- Estados para el core ---
     cuentasList: AccountBalance[];
     transaccionesList: TransactionItem[];
+    metasAhorroList: MetaAhorroItem[];
     saldoTotalNeto: number;
     pendientesCount: number;      // Para el círculo rojo de los Break Points
     isRecordingVoz: boolean;      // Estado de la burbuja flotante
@@ -51,12 +59,11 @@ interface FinanceState {
     setAppFullyUnlock: (unlocked: boolean) => void;
     setBubbleUnlock: (unlocked: boolean) => void;
 
-
-
     // Sincronización inicial desde SQLite a la memoria de la app Acciones del core
     syncFromDatabase: (data: {
         cuentas: AccountBalance[];
         transacciones: TransactionItem[];
+        metas: MetaAhorroItem[];
         pendientes: number;
         analiticas: {
             hormiga: number,
@@ -79,6 +86,11 @@ interface FinanceState {
 
     // Incrementar los Break Points instantáneamente desde la burbuja
     addBreakPointOptimista: () => void;
+
+    // --- ACCIONES ASÍNCRONAS CON BD ---
+    addAccountState: (cuenta: AccountBalance) => void;
+    addGoalState: (meta: MetaAhorroItem) => void;
+    updateGoalState: (meta: MetaAhorroItem) => void;
 }
 
 // Creación del store con Zustand
@@ -86,6 +98,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     // Valores iniciales por defecto
     cuentasList: [],
     transaccionesList: [],
+    metasAhorroList: [],
     saldoTotalNeto: 0,
     pendientesCount: 0,
     ingresosMes: 0,
@@ -120,6 +133,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         return {
             cuentasList: data.cuentas,
             transaccionesList: data.transacciones,
+            metasAhorroList: data.metas,
             saldoTotalNeto: neto,
             pendientesCount: data.pendientes,
             gastosHormigaMes: data.analiticas.hormiga,
@@ -140,13 +154,12 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
             let nuevoSaldo = cuenta.saldoActual;
             if (tipo === 'GASTO') {
-                // Si es tarjeta de crédito, gastar aumenta la deuda interna
                 nuevoSaldo = cuenta.tipo === 'TARJETA_CREDITO'
-                    ? cuenta.saldoActual + costoTotal //Gastar aumenta la deuda
+                    ? cuenta.saldoActual + costoTotal
                     : cuenta.saldoActual - costoTotal;
             } else if (tipo === 'INGRESO') {
                 nuevoSaldo = cuenta.tipo === 'TARJETA_CREDITO'
-                    ? cuenta.saldoActual - monto // Pagar la tarjeta reduce la deuda
+                    ? cuenta.saldoActual - monto
                     : cuenta.saldoActual + monto;
             }
 
@@ -161,7 +174,6 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         return {
             cuentasList: nuevasCuentas,
             saldoTotalNeto: nuevoNeto,
-            // Insertamos la transacción al inicio de la lista visual
             transaccionesList: [nuevaTransaccionFake, ...state.transaccionesList],
             gastosHormigaMes: esHormiga ? state.gastosHormigaMes + monto : state.gastosHormigaMes,
             gastosMes: tipo === 'GASTO' ? state.gastosMes + monto : state.gastosMes,
@@ -172,5 +184,24 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
     addBreakPointOptimista: () => set((state) => ({
         pendientesCount: state.pendientesCount + 1
+    })),
+
+    addAccountState: (cuenta) => set((state) => {
+        const nuevasCuentas = [...state.cuentasList, cuenta];
+        const nuevoNeto = nuevasCuentas.reduce((acc, c) => {
+            return c.tipo === 'TARJETA_CREDITO' ? acc - c.saldoActual : acc + c.saldoActual;
+        }, 0);
+        return {
+            cuentasList: nuevasCuentas,
+            saldoTotalNeto: nuevoNeto,
+        };
+    }),
+
+    addGoalState: (meta) => set((state) => ({
+        metasAhorroList: [...state.metasAhorroList, meta]
+    })),
+
+    updateGoalState: (metaActualizada) => set((state) => ({
+        metasAhorroList: state.metasAhorroList.map((m) => m.id === metaActualizada.id ? metaActualizada : m)
     })),
 }));

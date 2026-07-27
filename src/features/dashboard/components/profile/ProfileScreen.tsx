@@ -13,6 +13,7 @@ import {
 } from 'react-native-heroicons/outline';
 import { ChevronRightIcon } from 'react-native-heroicons/solid';
 import tw from '../../../../shared/lib/tw';
+import { NeoTheme } from '../../../../core/theme/colors';
 
 export default function ProfileScreen() {
     // Estados para los switches (Toggles)
@@ -20,16 +21,16 @@ export default function ProfileScreen() {
     const [biometricAccess, setBiometricAccess] = useState(true);
     const [backgroundBubble, setBackgroundBubble] = useState(false);
 
-    // Colores de la app para los Switches
-    const switchTrackActive = '#4D8EFF';
-    const switchTrackInactive = '#1E293B';
-    const switchThumb = '#FFFFFF';
+    // Colores de la app para los Switches — enlazados a la paleta NeoTheme
+    const switchTrackActive   = NeoTheme.colors.primaryBlue;
+    const switchTrackInactive = NeoTheme.colors.card;
+    const switchThumb         = '#FFFFFF';
 
     // Subcomponente reutilizable para las filas de configuración
     const SettingRow = ({ icon: Icon, title, rightElement, hasBorder = true }: any) => (
         <View style={tw`flex-row items-center justify-between py-4 px-5 ${hasBorder ? 'border-b border-white/5' : ''}`}>
             <View style={tw`flex-row items-center flex-1 pr-4`}>
-                <Icon size={22} color="#C2C6D6" style={tw`mr-3`} />
+                <Icon size={22} color={NeoTheme.colors.textSecondary} style={tw`mr-3`} />
                 <Text style={tw`text-white text-[15px] font-medium tracking-wide`}>{title}</Text>
             </View>
             <View>
@@ -48,28 +49,28 @@ export default function ProfileScreen() {
                     <Text style={tw`text-white text-3xl font-bold tracking-wide`}>Perfil</Text>
                 </View>
                 <TouchableOpacity style={tw`p-2 rounded-full border border-zinc-800`}>{/* Estilos al tarde un toque a la campana */}
-                    <BellIcon size={22} color="#C2C6D6" />
+                    <BellIcon size={22} color={NeoTheme.colors.textSecondary} />
                 </TouchableOpacity>
             </View>
 
             {/* --- INFO DEL USUARIO --- */}
             <View style={tw`items-center mb-10`}>
                 {/* Avatar con doble borde (anillo exterior) */}
-                <View style={tw`p-1 rounded-full bg-[#051424] border border-white/10 mb-4`}>
+                <View style={tw`p-1 rounded-full bg-background border border-white/10 mb-4`}>
                     <Image
                         source={{ uri: 'https://i.pravatar.cc/150?img=11' }} // Placeholder de imagen
                         style={tw`w-24 h-24 rounded-full`}
                     />
                 </View>
                 <Text style={tw`text-white text-3xl font-bold tracking-wide mb-1`}>Andrés</Text>
-                <Text style={tw`text-[#C2C6D6] text-sm font-normal`}>Universidad de las Américas</Text>
+                <Text style={tw`text-textSecondary text-sm font-normal`}>Universidad de las Américas</Text>
             </View>
 
             {/* --- SECCIÓN: SEGURIDAD --- */}
             <Text style={tw`text-[#8C909F] text-xs font-bold tracking-widest uppercase ml-2 mb-3`}>
                 Seguridad (Doble Biometría)
             </Text>
-            <View style={tw`bg-[#1C2B3C]/30 border border-white/5 rounded-[24px] mb-6 overflow-hidden`}>
+            <View style={tw`bg-card/30 border border-white/5 rounded-[24px] mb-6 overflow-hidden`}>
                 <SettingRow
                     icon={FingerPrintIcon}
                     title="Desbloqueo de Burbuja Flotante"
@@ -101,7 +102,7 @@ export default function ProfileScreen() {
             <Text style={tw`text-[#8C909F] text-xs font-bold tracking-widest uppercase ml-2 mb-3`}>
                 La Burbuja Inteligente
             </Text>
-            <View style={tw`bg-[#1C2B3C]/30 border border-white/5 rounded-[24px] mb-6 overflow-hidden`}>
+            <View style={tw`bg-card/30 border border-white/5 rounded-[24px] mb-6 overflow-hidden`}>
                 <SettingRow
                     icon={ArrowsPointingOutIcon}
                     title="Activar Burbuja en Segundo Plano"
@@ -120,8 +121,8 @@ export default function ProfileScreen() {
                     hasBorder={false}
                     rightElement={
                         <View style={tw`flex-row items-center justify-between`}>
-                            <Text style={tw`text-[#8C909F] text-sm mr-1 text-right max-w-[110px]`}>IA Local (Gama Alta)</Text>
-                            <ChevronRightIcon size={16} color="#8C909F" />
+                            <Text style={tw`text-textSecondary text-sm mr-1 text-right max-w-[110px]`}>IA Local (Gama Alta)</Text>
+                            <ChevronRightIcon size={16} color={NeoTheme.colors.textSecondary} />
                         </View>
                     }
                 />
@@ -131,14 +132,14 @@ export default function ProfileScreen() {
             <Text style={tw`text-[#8C909F] text-xs font-bold tracking-widest uppercase ml-2 mb-3`}>
                 Preferencias
             </Text>
-            <View style={tw`bg-[#1C2B3C]/30 border border-white/5 rounded-[24px] mb-8 overflow-hidden`}>
+            <View style={tw`bg-card/30 border border-white/5 rounded-[24px] mb-8 overflow-hidden`}>
                 <SettingRow
                     icon={BanknotesIcon}
                     title="Moneda Predeterminada"
                     rightElement={
                         <View style={tw`flex-row items-center`}>
-                            <Text style={tw`text-[#8C909F] text-sm mr-1`}>USD ($)</Text>
-                            <ChevronRightIcon size={16} color="#8C909F" />
+                            <Text style={tw`text-textSecondary text-sm mr-1`}>USD ($)</Text>
+                            <ChevronRightIcon size={16} color={NeoTheme.colors.textSecondary} />
                         </View>
                     }
                 />
@@ -146,7 +147,7 @@ export default function ProfileScreen() {
                     icon={Squares2X2Icon}
                     title="Categorías Personalizadas"
                     hasBorder={false}
-                    rightElement={<ChevronRightIcon size={16} color="#8C909F" />}
+                    rightElement={<ChevronRightIcon size={16} color={NeoTheme.colors.textSecondary} />}
                 />
             </View>
 
@@ -155,8 +156,8 @@ export default function ProfileScreen() {
                 style={tw`flex-row items-center justify-center border border-white/5 rounded-2xl py-4 mb-4`}
                 activeOpacity={0.6}
             >
-                <ArrowRightOnRectangleIcon size={20} color="#FF8A8A" style={tw`mr-2`} />
-                <Text style={tw`text-[#FF8A8A] text-[15px] font-medium tracking-wide`}>Cerrar Sesión</Text>
+                <ArrowRightOnRectangleIcon size={20} color={NeoTheme.colors.errorRed} style={tw`mr-2`} />
+                <Text style={tw`text-errorRed text-[15px] font-medium tracking-wide`}>Cerrar Sesión</Text>
             </TouchableOpacity>
 
         </View>

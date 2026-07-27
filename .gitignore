@@ -8,6 +8,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.agents
 
 # Native
 .kotlin/
@@ -40,7 +41,3 @@ yarn-error.*
 /ios
 /android
 
-#Claude
-
-.Claude
-CLAUDE.md
