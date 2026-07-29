@@ -7,6 +7,7 @@ import HomeScreen from "./src/features/dashboard/components/home/HomeScreen";
 import MovementsScreen from "./src/features/dashboard/components/movements/MovementsScreen";
 import AnalyticsScreen from "./src/features/dashboard/components/analytics/AnalyticsScreen";
 import ProfileScreen from "./src/features/dashboard/components/profile/ProfileScreen";
+import AddTransactionModal from "./src/features/transactions/components/AddTransactionModal";
 import MainTabBar, { ActiveTab } from "./src/shared/MainTabBar";
 import tw from "./src/shared/lib/tw";
 
@@ -29,34 +30,32 @@ const expoDb = openDatabaseSync('andres_finanzas.db');
 const db = drizzle(expoDb);
 
 export default function App() {
-  // 1. Correr migraciones de Drizzle (.sql)
   const { success: dbMigrated, error } = useMigrations(db, migrations);
-
-  // 2. Traer el estado de carga global de Zustand
   const isLoadingStore = useFinanceStore((state) => state.isLoading);
-
-  // 3. Activar el hook que jala los datos de SQLite a Zustand automáticamente
-  // Este hook se ejecuta solo cuando dbMigrated es true gracias a su useEffect interno
   const { loadInitialData } = useFinanceSync();
 
-  // 4. useSatate encargadao de identificar la pestaña activa
-
   const [activeTab, setActiveTab] = useState<ActiveTab>('Inicio');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // 5. Funcion temporal asignada al boton central de agregar
+  // Abrir modal de nuevo registro desde el botón (+) central de la barra inferior
   const handleRegistrarPress = () => {
-    console.log('¡Botón Registrar presionado! Aquí abriremos la IA de voz.');
+    setIsAddModalOpen(true);
   };
 
   useEffect(() => {
+    let isMounted = true;
     const initSeed = async () => {
-      // Solo sembramos si las tablas ya existen
-      if (dbMigrated) {
-        await seedDatabase(expoDb);
-        await loadInitialData(); // Obligamos a Zustand a leer la BD recién sembrada
+      if (dbMigrated && isMounted) {
+        try {
+          await seedDatabase(expoDb);
+          await loadInitialData();
+        } catch (e) {
+          console.error('Error al inicializar datos:', e);
+        }
       }
     };
     initSeed();
+    return () => { isMounted = false; };
   }, [dbMigrated, loadInitialData]);
 
   useEffect(() => {
@@ -65,12 +64,12 @@ export default function App() {
     }
   }, [error]);
 
-  // Pantalla de Carga (Mientras se crean tablas o se leen saldos)
+  // Pantalla de Carga
   if (!dbMigrated || isLoadingStore) {
     return (
-      <View className="flex-1 bg-background justify-center items-center">
+      <View style={tw`flex-1 bg-background justify-center items-center`}>
         <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="text-textSecondary mt-4 font-medium tracking-wide">
+        <Text style={tw`text-textSecondary mt-4 font-medium tracking-wide`}>
           Cargando tus finanzas...
         </Text>
       </View>
@@ -78,11 +77,12 @@ export default function App() {
   }
 
   return (
-    <View className="flex-1">
+    <View style={tw`flex-1 bg-background`}>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw`pb-28 bg-background`} // Espacio extra al final para que no pegue con el borde
+        style={tw`flex-1 bg-background`}
+        contentContainerStyle={tw`pb-28 bg-background`}
       >
 
         {/* Pantalla de inicio */}
@@ -97,25 +97,26 @@ export default function App() {
 
         {/* Pantalla de Metas*/}
         {activeTab === 'Metas' && (
-
           <AnalyticsScreen />
-
         )}
 
         {/* Pantalla de Perfil*/}
         {activeTab === 'Perfil' && (
-
           <ProfileScreen />
-
         )}
       </ScrollView>
 
-      {/* 6. Colocar la Barra Inferior */}
-
+      {/* 6. Barra Inferior Principal */}
       <MainTabBar
         currentActiveTab={activeTab}
         onTabChange={setActiveTab}
         onRegistrarPress={handleRegistrarPress}
+      />
+
+      {/* Modal de Registro Manual de Transacciones */}
+      <AddTransactionModal
+        visible={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
 
     </View>

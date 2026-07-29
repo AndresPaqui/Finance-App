@@ -52,9 +52,7 @@ export function useFinanceSync() {
         }
     }, [syncFromDatabase, setLoading]);
 
-    useEffect(() => {
-        loadInitialData();
-    }, [loadInitialData]);
+    // NOTA: La carga inicial la orquesta App.tsx tras verificar migraciones y seed.
 
 
     // 2. REGISTRO DE MOVIMIENTOS

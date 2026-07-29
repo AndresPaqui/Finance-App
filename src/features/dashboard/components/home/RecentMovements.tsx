@@ -66,10 +66,10 @@ export default function RecentMovements() {
                                 {/* Columna Derecha: Tarjeta Informativa */}
                                 <View style={tw`flex-1 flex-row justify-between items-center bg-card/30 border border-white/5 rounded-2xl p-4`}>
                                     <View style={tw`flex-1 pr-2`}>
-                                        <Text style={tw`text-white text-base font-semibold tracking-wide`} numberOfLines={1}>
-                                            {mov.descripcion || mov.categoriaNombre}
+                                        <Text style={tw`text-white text-base font-semibold tracking-wide`} numberOfLines={1} ellipsizeMode="tail">
+                                            {mov.descripcion && mov.descripcion.trim() !== '' ? mov.descripcion : mov.categoriaNombre}
                                         </Text>
-                                        <Text style={tw`text-textSecondary text-xs mt-1 font-normal`}>
+                                        <Text style={tw`text-textSecondary text-xs mt-1 font-normal`} numberOfLines={1} ellipsizeMode="tail">
                                             {mov.categoriaNombre} • {getRelativeTime(mov.fechaCreacion)}
                                         </Text>
                                     </View>

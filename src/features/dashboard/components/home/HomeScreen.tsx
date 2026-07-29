@@ -11,13 +11,13 @@ export default function HomeScreen() {
         <View>
             <WalletHeader />
             <View>
-                {/* 1. Billetera superior */}
+                {/* 1. Sección del micrófono y Gasté algo rápido */}
                 <VoiceActionButton />
-                {/* 2. Botón de registro de voz */}
+                {/* 2. Tarjeta de costo diario */}
                 <DailyCostCard />
-                {/* 4. Línea de tiempo de movimientos */}
+                {/* 3. Línea de tiempo de movimientos */}
                 <RecentMovements />
-                {/* 5. Analíticas y metas de ahorro al fondo */}
+                {/* 4. Analíticas y metas de ahorro */}
                 <AnalyticsAndGoals />
             </View>
         </View>
