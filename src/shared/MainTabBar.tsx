@@ -1,6 +1,6 @@
-// src/features/dashboard/components/MainTabBar.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { safeHaptics } from './lib/haptics';
 import {
     HomeIcon as HomeSolid,
     CreditCardIcon as CardSolid,
@@ -28,6 +28,11 @@ export default function MainTabBar({ currentActiveTab, onTabChange, onRegistrarP
     // Colores basados estrictamente en tu Figma
     const activeColor = '#ADC6FF';    // Azul claro suave para la pestaña seleccionada
     const inactiveColor = '#8C909F';  // Gris tenue para las inactivas
+
+    const handleRegistrar = () => {
+        safeHaptics.impactMedium();
+        onRegistrarPress();
+    };
 
     const TabItem = ({ name, iconOutline: IconOutline, iconSolid: IconSolid, label }: {
         name: ActiveTab;
@@ -76,7 +81,7 @@ export default function MainTabBar({ currentActiveTab, onTabChange, onRegistrarP
                     <View style={tw`flex-1 items-center justify-center relative h-full`}>
                         <TouchableOpacity
                             style={[tw`absolute items-center justify-center`, { top: -38 }]}
-                            onPress={onRegistrarPress}
+                            onPress={handleRegistrar}
                             activeOpacity={0.8}
                         >
                             <View style={tw`p-2 rounded-full bg-background`}>

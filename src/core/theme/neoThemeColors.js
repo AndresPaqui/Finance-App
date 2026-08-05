@@ -12,7 +12,7 @@ module.exports = {
     warningOrange: '#F59E0B',   // Gastos Hormiga, Alertas, Burn Rate
 
     // Neutros / Fondos (Slate Palette)
-    background:    '#0F172A',   // Fondo oscuro elegante estilo Stripe
+    background:    '#030914',   // Azul oscuro profundo unificado (Wallet & Root background)
     card:          '#1E293B',   // Tarjetas y contenedores
     border:        '#334155',   // Bordes sutiles
 

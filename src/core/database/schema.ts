@@ -11,9 +11,13 @@ export const cuentas = sqliteTable('cuentas', {
     nombre: text('nombre').notNull(),
     tipo: text('tipo', { enum: ['EFECTIVO', 'BANCO', 'TARJETA_CREDITO'] }).notNull(),
     saldoActual: real('saldo_actual').notNull().default(0.0),
-    limiteCredito: real('limite_credito'), // Solo para tarjetas
-    fechaCorte: integer('fecha_corte'),    // Solo para tarjetas
-    fechaPago: integer('fecha_pago'),      // Solo para tarjetas
+    limiteCredito: real('limite_credito'), // Solo para tarjetas (Cupo Total)
+    fechaCorte: integer('fecha_corte'),    // Solo para tarjetas (Día de corte 1-31)
+    fechaPago: integer('fecha_pago'),      // Solo para tarjetas (Día máximo de pago 1-31)
+    presetId: text('preset_id'),           // Referencia al preset del banco (ej. 'pichincha', 'guayaquil')
+    colorGradienteInicio: text('color_gradiente_inicio'), // Color HEX primario
+    colorGradienteFin: text('color_gradiente_fin'),       // Color HEX secundario
+    icono: text('icono'),                  // Nombre del ícono representativo
 });
 
 // 2. Tabla de Categorías

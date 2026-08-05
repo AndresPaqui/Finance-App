@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView, ActivityIndicator, LayoutAnimation, Platform, UIManager, TextInput, Keyboard, Animated, BackHandler } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, ActivityIndicator, Platform, UIManager, TextInput, Keyboard, Animated, BackHandler } from 'react-native';
+import { safeHaptics } from '../../../shared/lib/haptics';
 import { XMarkIcon, CheckCircleIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon } from 'react-native-heroicons/outline';
 import tw from '../../../shared/lib/tw';
 import { useFinanceStore } from '../../../core/state/useFinanceStore';
@@ -38,6 +39,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
+    const [isCategoryHighlighted, setIsCategoryHighlighted] = useState(false);
 
     // Animación de borde verde de 250ms para el campo de Descripción
     const descBorderAnim = useRef(new Animated.Value(0)).current;
@@ -74,13 +76,26 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
 
     // Abrir teclado numérico y cerrar teclado de texto si está activo de forma síncrona
     const handleOpenKeyboard = useCallback(() => {
+        safeHaptics.impactMedium();
         Keyboard.dismiss();
         descriptionInputRef.current?.blur();
         setIsKeyboardVisible(true);
     }, []);
 
     const handleCloseKeyboard = useCallback(() => {
+        safeHaptics.impactLight();
         setIsKeyboardVisible(false);
+    }, []);
+
+    // Acción de botón "Siguiente" de la calculadora: oculta teclado, desplaza vista y activa resaltado temporal
+    const handleNextFromKeyboard = useCallback(() => {
+        safeHaptics.impactMedium();
+        setIsKeyboardVisible(false);
+        setTimeout(() => {
+            scrollViewRef.current?.scrollTo({ y: 160, animated: true });
+            setIsCategoryHighlighted(true);
+            setTimeout(() => setIsCategoryHighlighted(false), 900);
+        }, 50);
     }, []);
 
     // Manejo unificado de la tecla / gesto "Atrás" (Android Hardware Back & Modal Gesture)
@@ -95,6 +110,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
             setIsDescriptionFocused(false);
             return true; // Previene el cierre del modal
         }
+        safeHaptics.impactLight();
         onClose();
         return false;
     }, [isKeyboardVisible, isDescriptionFocused, handleCloseKeyboard, onClose]);
@@ -109,6 +125,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
 
     // Al enfocar la descripción, retraer la calculadora numérica si está abierta
     const handleFocusDescription = useCallback(() => {
+        safeHaptics.selection();
         if (isKeyboardVisible) {
             setIsKeyboardVisible(false);
         }
@@ -142,6 +159,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
 
     // Confirmación y guardado en SQLite vía useFinanceSync
     const handleConfirm = useCallback(async () => {
+        safeHaptics.notificationSuccess();
         const monto = parseFloat(amountString);
         if (isNaN(monto) || monto <= 0) {
             return;
@@ -184,6 +202,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
     }, []);
 
     const handleCloseModal = useCallback(() => {
+        safeHaptics.impactLight();
         Keyboard.dismiss();
         setIsKeyboardVisible(false);
         onClose();
@@ -224,7 +243,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
                     ref={scrollViewRef}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[tw`px-5 pt-3 gap-4`, isKeyboardVisible ? tw`pb-96` : tw`pb-24`]}
+                    contentContainerStyle={[tw`px-5 pt-3 gap-4`, isKeyboardVisible ? tw`pb-80` : tw`pb-24`]}
                 >
                     {/* Header Principal */}
                     <View style={tw`flex-row justify-between items-center mb-1`}>
@@ -289,11 +308,12 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
                     {/* 2. Toggle Gasto / Ingreso */}
                     <TransactionTypeToggle type={type} onChangeType={handleTypeChange} />
 
-                    {/* 3. Selector de Categoría Dinámico por Tipo */}
+                    {/* 3. Selector de Categoría Dinámico por Tipo con Tarjeta Neomórfica y Glow Animado */}
                     <CategorySelector
                         type={type}
                         selectedCategoryNombre={categoriaNombre}
                         onSelectCategory={setCategoriaNombre}
+                        isHighlighted={isCategoryHighlighted}
                     />
 
                     {/* 4. Opción Gasto Hormiga (Solo si es Gasto) */}
@@ -330,49 +350,31 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
                     </TouchableOpacity>
                 )}
 
-                {/* --- TECLADO NUMÉRICO STICKY FLOTANTE (Pre-montado en Hilo Nativo con translateY) --- */}
+                {/* --- TECLADO NUMÉRICO STICKY FLOTANTE (Sin barra superior) --- */}
                 <Animated.View
                     pointerEvents={isKeyboardVisible ? 'auto' : 'none'}
                     style={[
-                        tw`absolute bottom-0 left-0 right-0 bg-[#0F172A] border-t border-white/10 rounded-t-3xl p-5 pb-8 shadow-2xl z-40`,
+                        tw`absolute bottom-0 left-0 right-0 bg-[#0F172A] border-t border-white/10 rounded-t-3xl p-4 pt-5 pb-6 shadow-2xl z-40`,
                         { transform: [{ translateY: keyboardTranslateY }] },
                     ]}
                 >
-                    {/* Barra Superior del Teclado */}
-                    <View style={tw`flex-row justify-between items-center mb-3 px-1`}>
-                        {/* Botón Circular Translúcido (Flecha hacia abajo v) para cerrar teclado */}
-                        <TouchableOpacity
-                            onPress={handleCloseKeyboard}
-                            activeOpacity={0.7}
-                            style={tw`w-9 h-9 rounded-full bg-card/80 border border-white/15 items-center justify-center`}
-                        >
-                            <ChevronDownIcon size={18} color="#94A3B8" />
-                        </TouchableOpacity>
-
-                        <Text style={tw`text-textSecondary text-xs font-semibold uppercase tracking-widest`}>
-                            Ingresar Monto
-                        </Text>
-
-                        {/* Botón "Listo" */}
-                        <TouchableOpacity
-                            onPress={handleCloseKeyboard}
-                            activeOpacity={0.7}
-                            style={tw`px-3 py-1.5 rounded-xl bg-primaryBlue/10 border border-primaryBlue/20`}
-                        >
-                            <Text style={tw`text-primaryBlue text-xs font-bold`}>Listo</Text>
-                        </TouchableOpacity>
-                    </View>
-
                     {/* Componente Atómico del Teclado */}
                     <NumericKeyboard
                         onKeyPress={handleKeyPress}
                         onDelete={handleDelete}
                     />
 
-                    {/* Botón de Confirmación Integrado dentro del Teclado */}
-                    <View style={tw`mt-4`}>
-                        {renderConfirmButton()}
-                    </View>
+                    {/* Botón Siguiente con Flecha de Retracción (∨) */}
+                    <TouchableOpacity
+                        onPress={handleNextFromKeyboard}
+                        activeOpacity={0.8}
+                        style={tw`w-full py-3.5 rounded-2xl bg-primaryBlue items-center justify-center mt-2.5 shadow-md flex-row gap-2`}
+                    >
+                        <Text style={tw`text-zinc-950 text-base font-black tracking-wide`}>
+                            Siguiente
+                        </Text>
+                        <ChevronDownIcon size={20} color="#090D16" />
+                    </TouchableOpacity>
                 </Animated.View>
             </View>
         </Modal>

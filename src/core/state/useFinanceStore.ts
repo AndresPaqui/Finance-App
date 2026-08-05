@@ -1,14 +1,19 @@
-//Aqui se controlará el saldo disponible total, el estado de la burbuja y los contadores de los Break Points pendientes en tiempo real.
-
 import { create } from 'zustand';
+import { getGradientColorsForAccount } from '../constants/walletPresets';
 
 // Interfaces de TypeScript para asegurar el tipado estricto
 export interface AccountBalance {
     id: string;
     nombre: string;
     tipo: 'EFECTIVO' | 'BANCO' | 'TARJETA_CREDITO';
-    saldoActual: number;
-    limiteCredito?: number;
+    saldoActual: number;                // En Tarjeta de Crédito = Deuda acumulada (monto utilizado)
+    limiteCredito?: number | null;      // Solo para Tarjeta de Crédito (Cupo Total)
+    fechaCorte?: number | null;         // Día del mes (1-31)
+    fechaPago?: number | null;          // Día del mes (1-31)
+    presetId?: string | null;           // Preset del Banco (ej. 'pichincha', 'guayaquil', 'discover')
+    colorGradienteInicio?: string | null; // Color HEX inicial
+    colorGradienteFin?: string | null;    // Color HEX final
+    icono?: string | null;
 }
 
 export interface TransactionItem {
@@ -205,3 +210,27 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         metasAhorroList: state.metasAhorroList.map((m) => m.id === metaActualizada.id ? metaActualizada : m)
     })),
 }));
+
+/**
+ * Calcula el cupo disponible en una tarjeta de crédito.
+ * Cupo Disponible = Límite de Crédito - Saldo Usado (Deuda Actual)
+ */
+export function getCupoDisponible(cuenta: AccountBalance): number {
+    if (cuenta.tipo !== 'TARJETA_CREDITO') {
+        return cuenta.saldoActual;
+    }
+    const limite = cuenta.limiteCredito ?? 0;
+    const cupo = limite - cuenta.saldoActual;
+    return cupo > 0 ? cupo : 0;
+}
+
+/**
+ * Obtener la pareja de colores HEX para el gradiente visual de una cuenta.
+ */
+export function getAccountGradient(cuenta: AccountBalance): [string, string] {
+    return getGradientColorsForAccount(
+        cuenta.presetId,
+        cuenta.colorGradienteInicio,
+        cuenta.colorGradienteFin
+    );
+}

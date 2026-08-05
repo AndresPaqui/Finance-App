@@ -1,165 +1,102 @@
 // src/core/database/seed.ts
 import { SQLiteDatabase } from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { cuentas, categorias, transacciones, metasAhorro } from './schema';
 import * as Crypto from 'expo-crypto';
 
 export async function seedDatabase(expoDb: SQLiteDatabase) {
-    const db = drizzle(expoDb);
-
-    console.log('🌱 Iniciando sembrado de base de datos...');
+    console.log('🌱 Iniciando verificación asincrónica de base de datos...');
 
     try {
-        // 1. Limpiar datos existentes 
-        await db.delete(transacciones);
-        await db.delete(metasAhorro);
-        await db.delete(cuentas);
-        await db.delete(categorias);
+        // 0. Auto-migración defensiva: asegurar que la tabla cuentas tenga las nuevas columnas
+        await expoDb.execAsync('ALTER TABLE cuentas ADD COLUMN preset_id TEXT;').catch(() => {});
+        await expoDb.execAsync('ALTER TABLE cuentas ADD COLUMN color_gradiente_inicio TEXT;').catch(() => {});
+        await expoDb.execAsync('ALTER TABLE cuentas ADD COLUMN color_gradiente_fin TEXT;').catch(() => {});
+        await expoDb.execAsync('ALTER TABLE cuentas ADD COLUMN icono TEXT;').catch(() => {});
 
-        // 2. Crear Cuentas (Efectivo $20 + Débito $506.82 - Deuda Crédito $100 = Neto $426.82)
+        // 1. Verificación asincrónica: Comprobar si ya existen cuentas registradas
+        const checkRows = await expoDb.getAllAsync<{ count: number }>(
+            'SELECT COUNT(*) as count FROM cuentas;'
+        ).catch(() => [{ count: 0 }]);
+
+        if (checkRows && checkRows.length > 0 && checkRows[0].count >= 3) {
+            console.log('ℹ️ Base de datos ya sembrada con las 3 billeteras iniciales. Omitiendo siembra inicial.');
+            return;
+        }
+
+        console.log('🌱 Ejecutando siembra inicial de datos en SQLite...');
+
+        // 2. Limpieza de datos previa en orden de llaves foráneas
+        await expoDb.execAsync(`
+            DELETE FROM transacciones;
+            DELETE FROM deudas_amigos;
+            DELETE FROM metas_ahorro;
+            DELETE FROM cuentas;
+            DELETE FROM categorias;
+        `);
+
+        // 3. Crear 8 Cuentas de Prueba representando cada Preset Corporativo
+        const idPichincha = Crypto.randomUUID();
+        const idGuayaquil = Crypto.randomUUID();
+        const idProdubanco = Crypto.randomUUID();
+        const idPacifico = Crypto.randomUUID();
+        const idDiscover = Crypto.randomUUID();
+        const idVisa = Crypto.randomUUID();
+        const idDeuna = Crypto.randomUUID();
         const idEfectivo = Crypto.randomUUID();
-        const idDebito = Crypto.randomUUID();
-        const idCredito = Crypto.randomUUID();
 
-        await db.insert(cuentas).values([
-            { id: idEfectivo, nombre: 'Efectivo', tipo: 'EFECTIVO', saldoActual: 20.00 },
-            { id: idDebito, nombre: 'Débito', tipo: 'BANCO', saldoActual: 506.82 },
-            { id: idCredito, nombre: 'Crédito', tipo: 'TARJETA_CREDITO', saldoActual: 100.00 },
-        ]);
+        const insertCuentaStmt = `INSERT INTO cuentas (id, nombre, tipo, saldo_actual, limite_credito, preset_id, color_gradiente_inicio, color_gradiente_fin) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
 
-        // 3. Crear Metas de Ahorro
-        await db.insert(metasAhorro).values([
-            {
-                id: Crypto.randomUUID(),
-                nombreMeta: 'PS5 Slim',
-                montoObjetivo: 500.00,
-                montoActual: 320.00,
-            }
-        ]);
+        // 1. Banco Pichincha
+        await expoDb.runAsync(insertCuentaStmt, [idPichincha, 'Banco Pichincha', 'BANCO', 506.82, null, 'pichincha', '#CA8A04', '#FACC15']);
+        // 2. Discover
+        await expoDb.runAsync(insertCuentaStmt, [idDiscover, 'Discover', 'TARJETA_CREDITO', 180.00, 600.00, 'discover', '#F26622', '#1F2937']);
+        // 3. Efectivo
+        await expoDb.runAsync(insertCuentaStmt, [idEfectivo, 'Efectivo', 'EFECTIVO', 45.00, null, 'efectivo', '#10B981', '#047857']);
 
-        // 4. Crear Categorías
+        // 4. Crear Metas de Ahorro
+        await expoDb.runAsync(
+            `INSERT INTO metas_ahorro (id, nombre_meta, monto_obj_gta, monto_actual) VALUES (?, ?, ?, ?);`,
+            [Crypto.randomUUID(), 'PS5 Slim', 500.00, 320.00]
+        );
+
+        // 5. Crear Categorías
         const catComidaId = Crypto.randomUUID();
         const catTransporteId = Crypto.randomUUID();
         const catSaludId = Crypto.randomUUID();
         const catEducacionId = Crypto.randomUUID();
         const catSueldoId = Crypto.randomUUID();
-        const catSnacksId = Crypto.randomUUID(); // Fuga de dinero / hormiga
+        const catSnacksId = Crypto.randomUUID();
         const catEntreteId = Crypto.randomUUID();
 
-        await db.insert(categorias).values([
-            { id: catComidaId, nombre: 'Comida', esNecesidad: true },
-            { id: catTransporteId, nombre: 'Transporte', esNecesidad: true },
-            { id: catSaludId, nombre: 'Salud', esNecesidad: true },
-            { id: catEducacionId, nombre: 'Educación', esNecesidad: true },
-            { id: catSueldoId, nombre: 'Sueldo', esNecesidad: false },
-            { id: catSnacksId, nombre: 'Snacks', esNecesidad: false },
-            { id: catEntreteId, nombre: 'Entretenimiento', esNecesidad: false },
-        ]);
+        const insertCatStmt = `INSERT INTO categorias (id, nombre, es_necesidad) VALUES (?, ?, ?);`;
+        await expoDb.runAsync(insertCatStmt, [catComidaId, 'Comida', 1]);
+        await expoDb.runAsync(insertCatStmt, [catTransporteId, 'Transporte', 1]);
+        await expoDb.runAsync(insertCatStmt, [catSaludId, 'Salud', 1]);
+        await expoDb.runAsync(insertCatStmt, [catEducacionId, 'Educación', 1]);
+        await expoDb.runAsync(insertCatStmt, [catSueldoId, 'Sueldo', 0]);
+        await expoDb.runAsync(insertCatStmt, [catSnacksId, 'Snacks', 0]);
+        await expoDb.runAsync(insertCatStmt, [catEntreteId, 'Entretenimiento', 0]);
 
-        // 5. Crear Transacciones simulando fechas (ISO strings)
+        // 6. Crear Transacciones simulando fechas
         const hoy = new Date();
         const ayer = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
         const haceDosDias = new Date(hoy); haceDosDias.setDate(haceDosDias.getDate() - 2);
         const haceTresDias = new Date(hoy); haceTresDias.setDate(haceTresDias.getDate() - 3);
 
-        await db.insert(transacciones).values([
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catSueldoId,
-                monto: 3200.00,
-                tipo: 'INGRESO',
-                descripcion: 'Nómina Quincenal',
-                fechaCreacion: haceTresDias.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catEducacionId,
-                monto: 850.00,
-                tipo: 'GASTO',
-                descripcion: 'Matrícula Universidad',
-                fechaCreacion: haceDosDias.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catComidaId,
-                monto: 150.00,
-                tipo: 'GASTO',
-                descripcion: 'Supermercado',
-                fechaCreacion: haceDosDias.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catTransporteId,
-                monto: 100.00,
-                comision: 3.25, // Comisión cajero
-                tipo: 'GASTO',
-                descripcion: 'Retiro ATM y Transporte',
-                fechaCreacion: haceDosDias.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catSaludId,
-                monto: 32.40,
-                tipo: 'GASTO',
-                descripcion: 'Farmacia',
-                fechaCreacion: ayer.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idCredito,
-                categoriaId: catComidaId,
-                monto: 25.00,
-                comision: 1.50, // Comisión bancaria (3.25 + 1.50 = $4.75 total comisiones)
-                tipo: 'GASTO',
-                descripcion: 'Pizza Express',
-                fechaCreacion: ayer.toISOString(),
-            },
-            // Gastos hormiga en snacks: 14.50 + 15.00 + 12.50 = $42.00 exactos
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idDebito,
-                categoriaId: catSnacksId,
-                monto: 14.50,
-                tipo: 'GASTO',
-                descripcion: 'Cafetería Campus',
-                fechaCreacion: haceDosDias.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idEfectivo,
-                categoriaId: catSnacksId,
-                monto: 15.00,
-                tipo: 'GASTO',
-                descripcion: 'Heladería y Snacks',
-                fechaCreacion: ayer.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idEfectivo,
-                categoriaId: catSnacksId,
-                monto: 12.50,
-                tipo: 'GASTO',
-                descripcion: 'Cafetería Central',
-                fechaCreacion: hoy.toISOString(),
-            },
-            {
-                id: Crypto.randomUUID(),
-                cuentaOrigenId: idCredito,
-                categoriaId: catEntreteId,
-                monto: 75.00,
-                tipo: 'GASTO',
-                descripcion: 'Cine y Bowling',
-                fechaCreacion: hoy.toISOString(),
-            }
-        ]);
+        const insertTxStmt = `INSERT INTO transacciones (id, cuenta_origen_id, categoria_id, monto, comision, tipo, descripcion, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
 
-        console.log('✅ Base de datos sembrada con éxito.');
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catSueldoId, 3200.00, 0.0, 'INGRESO', 'Nómina Quincenal', haceTresDias.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catEducacionId, 850.00, 0.0, 'GASTO', 'Matrícula Universidad', haceDosDias.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catComidaId, 150.00, 0.0, 'GASTO', 'Supermercado', haceDosDias.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catTransporteId, 100.00, 3.25, 'GASTO', 'Retiro ATM y Transporte', haceDosDias.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catSaludId, 32.40, 0.0, 'GASTO', 'Farmacia', ayer.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idDiscover, catComidaId, 25.00, 1.50, 'GASTO', 'Pizza Express', ayer.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idPichincha, catSnacksId, 14.50, 0.0, 'GASTO', 'Cafetería Campus', haceDosDias.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idEfectivo, catSnacksId, 15.00, 0.0, 'GASTO', 'Heladería y Snacks', ayer.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idEfectivo, catSnacksId, 12.50, 0.0, 'GASTO', 'Cafetería Central', hoy.toISOString()]);
+        await expoDb.runAsync(insertTxStmt, [Crypto.randomUUID(), idDiscover, catEntreteId, 75.00, 0.0, 'GASTO', 'Cine y Bowling', hoy.toISOString()]);
+
+        console.log('✅ Base de datos sembrada asincrónicamente con éxito.');
     } catch (error) {
-        console.error('❌ Error al sembrar la base de datos:', error);
+        console.error('❌ Error al sembrar la base de datos de forma asincrónica:', error);
     }
 }

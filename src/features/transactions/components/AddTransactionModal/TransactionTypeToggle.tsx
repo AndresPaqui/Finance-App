@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Animated, LayoutChangeEvent } from 'react-native';
+import { safeHaptics } from '../../../../shared/lib/haptics';
 import tw from '../../../../shared/lib/tw';
 
 export type TransactionType = 'GASTO' | 'INGRESO';
@@ -60,7 +61,10 @@ function TransactionTypeToggleComponent({ type, onChangeType }: TransactionTypeT
 
             {/* Opción Gasto */}
             <TouchableOpacity
-                onPress={() => onChangeType('GASTO')}
+                onPress={() => {
+                    safeHaptics.impactLight();
+                    onChangeType('GASTO');
+                }}
                 activeOpacity={0.7}
                 style={tw`flex-1 py-3 rounded-xl items-center justify-center z-10`}
             >
@@ -76,7 +80,10 @@ function TransactionTypeToggleComponent({ type, onChangeType }: TransactionTypeT
 
             {/* Opción Ingreso */}
             <TouchableOpacity
-                onPress={() => onChangeType('INGRESO')}
+                onPress={() => {
+                    safeHaptics.impactLight();
+                    onChangeType('INGRESO');
+                }}
                 activeOpacity={0.7}
                 style={tw`flex-1 py-3 rounded-xl items-center justify-center z-10`}
             >

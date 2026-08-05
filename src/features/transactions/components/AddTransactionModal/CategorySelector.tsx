@@ -1,7 +1,6 @@
-// src/features/transactions/components/AddTransactionModal/CategorySelector.tsx
-
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { safeHaptics } from '../../../../shared/lib/haptics';
 import tw from '../../../../shared/lib/tw';
 import AllCategoriesModal from './AllCategoriesModal';
 
@@ -16,6 +15,7 @@ interface CategorySelectorProps {
     selectedCategoryNombre: string;
     onSelectCategory: (categoriaNombre: string) => void;
     onSeeAll?: () => void;
+    isHighlighted?: boolean;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -55,11 +55,42 @@ function CategorySelectorComponent({
     selectedCategoryNombre,
     onSelectCategory,
     onSeeAll,
+    isHighlighted = false,
 }: CategorySelectorProps) {
     const [isAllCategoriesOpen, setIsAllCategoriesOpen] = useState(false);
     const categories = type === 'INGRESO' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    const glowAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (isHighlighted) {
+            Animated.sequence([
+                Animated.timing(glowAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.delay(150),
+                Animated.timing(glowAnim, {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: false,
+                }),
+            ]).start();
+        }
+    }, [isHighlighted]);
+
+    const borderColor = glowAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['rgba(255, 255, 255, 0.05)', '#3B82F6'],
+    });
+
+    const backgroundColor = glowAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['rgba(30, 41, 59, 0.40)', 'rgba(59, 130, 246, 0.15)'],
+    });
 
     const handleSeeAll = () => {
+        safeHaptics.selection();
         if (onSeeAll) {
             onSeeAll();
         } else {
@@ -68,7 +99,7 @@ function CategorySelectorComponent({
     };
 
     return (
-        <View style={tw`w-full mb-4`}>
+        <Animated.View style={[tw`w-full mb-4 p-3.5 rounded-3xl border`, { borderColor, backgroundColor }]}>
             {/* Header */}
             <View style={tw`flex-row justify-between items-center mb-3 px-1`}>
                 <Text style={tw`text-textSecondary text-xs font-semibold uppercase tracking-widest`}>
@@ -92,7 +123,10 @@ function CategorySelectorComponent({
                     return (
                         <TouchableOpacity
                             key={cat.id}
-                            onPress={() => onSelectCategory(cat.nombre)}
+                            onPress={() => {
+                                safeHaptics.selection();
+                                onSelectCategory(cat.nombre);
+                            }}
                             activeOpacity={0.7}
                             style={[
                                 tw`w-20 py-3.5 rounded-2xl bg-card/40 border items-center justify-center gap-1.5`,
@@ -131,7 +165,7 @@ function CategorySelectorComponent({
                 selectedCategoryNombre={selectedCategoryNombre}
                 onSelectCategory={onSelectCategory}
             />
-        </View>
+        </Animated.View>
     );
 }
 

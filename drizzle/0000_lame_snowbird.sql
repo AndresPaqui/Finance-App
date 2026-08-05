@@ -12,7 +12,11 @@ CREATE TABLE `cuentas` (
 	`saldo_actual` real DEFAULT 0 NOT NULL,
 	`limite_credito` real,
 	`fecha_corte` integer,
-	`fecha_pago` integer
+	`fecha_pago` integer,
+	`preset_id` text,
+	`color_gradiente_inicio` text,
+	`color_gradiente_fin` text,
+	`icono` text
 );
 --> statement-breakpoint
 CREATE TABLE `deudas_amigos` (

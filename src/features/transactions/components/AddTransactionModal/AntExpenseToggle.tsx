@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, Switch } from 'react-native';
+import { safeHaptics } from '../../../../shared/lib/haptics';
 import tw from '../../../../shared/lib/tw';
 import { NeoTheme } from '../../../../core/theme/colors';
 
@@ -11,9 +12,14 @@ interface AntExpenseToggleProps {
 }
 
 function AntExpenseToggleComponent({ value, onValueChange }: AntExpenseToggleProps) {
+    const handleToggle = (newValue: boolean) => {
+        safeHaptics.impactLight();
+        onValueChange(newValue);
+    };
+
     return (
         <TouchableOpacity
-            onPress={() => onValueChange(!value)}
+            onPress={() => handleToggle(!value)}
             activeOpacity={0.8}
             style={[
                 tw`w-full flex-row items-center justify-between bg-card/40 border rounded-2xl p-3.5 mb-4`,

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { safeHaptics } from '../../../../shared/lib/haptics';
 import { ChevronDownIcon, BuildingLibraryIcon, CreditCardIcon, BanknotesIcon, CheckIcon } from 'react-native-heroicons/outline';
 import tw from '../../../../shared/lib/tw';
 import { useFinanceStore, AccountBalance } from '../../../../core/state/useFinanceStore';
@@ -51,7 +52,10 @@ function AccountSelectorComponent({ type = 'GASTO', selectedAccountId, onSelectA
 
             {/* Tarjeta de Cuenta Seleccionada */}
             <TouchableOpacity
-                onPress={() => setIsPickerOpen(true)}
+                onPress={() => {
+                    safeHaptics.selection();
+                    setIsPickerOpen(true);
+                }}
                 activeOpacity={0.7}
                 style={tw`flex-row items-center justify-between bg-card/40 border border-white/5 rounded-2xl p-4`}
             >
@@ -94,6 +98,7 @@ function AccountSelectorComponent({ type = 'GASTO', selectedAccountId, onSelectA
                                 return (
                                     <TouchableOpacity
                                         onPress={() => {
+                                            safeHaptics.selection();
                                             onSelectAccount(item.id);
                                             setIsPickerOpen(false);
                                         }}

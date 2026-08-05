@@ -13,6 +13,10 @@ export interface CreateAccountInput {
     limiteCredito?: number;
     fechaCorte?: number;
     fechaPago?: number;
+    presetId?: string;
+    colorGradienteInicio?: string;
+    colorGradienteFin?: string;
+    icono?: string;
 }
 
 /**
@@ -79,6 +83,10 @@ export async function createAccount(input: CreateAccountInput) {
         limiteCredito: input.limiteCredito ?? null,
         fechaCorte: input.fechaCorte ?? null,
         fechaPago: input.fechaPago ?? null,
+        presetId: input.presetId ?? null,
+        colorGradienteInicio: input.colorGradienteInicio ?? null,
+        colorGradienteFin: input.colorGradienteFin ?? null,
+        icono: input.icono ?? null,
     };
 
     await db.insert(cuentas).values(nuevaCuenta);
